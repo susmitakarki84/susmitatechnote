@@ -1,0 +1,68 @@
+/* --- SIDEBAR CONTAINER --- */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--sidebar-bg);
+  color: var(--text);
+  position: fixed;
+  height: 100%;
+  top: 0; left: 0;
+  z-index: 1000;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+/* Header */
+.sidebar-header {
+  padding: 0 1.5rem;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #1e293b;
+  flex-shrink: 0;
+}
+.brand { font-weight: 700; font-size: 1.3rem; color: white; display: flex; align-items: center; gap: 10px; }
+.brand i { color: var(--primary); }
+
+/* Menu */
+.menu { list-style: none; margin-top: 1.5rem; flex-grow: 1; padding: 0; }
+
+/* Links (Fix for Blue Text) */
+.menu-item a {
+  display: flex;
+  align-items: center;
+  padding: 0.9rem 1.5rem;
+  color: #cbd5e1 !important; 
+  text-decoration: none !important;
+  font-size: 0.95rem;
+  transition: var(--transition);
+  border-left: 3px solid transparent;
+  width: 100%;
+}
+.menu-item i {
+  width: 24px; font-size: 1.1rem; margin-right: 1rem; text-align: center; color: #94a3b8; transition: var(--transition);
+}
+
+/* Hover & Active */
+.menu-item:hover a { background: var(--hover-bg); color: white !important; }
+.menu-item:hover i { color: white; }
+
+.menu-item.active a { background: rgba(99, 102, 241, 0.15); color: var(--primary) !important; border-left-color: var(--primary); }
+.menu-item.active i { color: var(--primary); }
+
+/* Logout & Toggle */
+.logout { margin-bottom: 1rem; border-top: 1px solid #1e293b; }
+.logout a { color: #94a3b8; }
+.logout:hover a { color: var(--danger) !important; background: rgba(239, 68, 68, 0.1); }
+
+.toggle-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem; }
+.toggle-btn:hover { color: white; }
+
+/* Mobile Sidebar Behavior */
+@media (max-width: 992px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); box-shadow: 4px 0 15px rgba(0,0,0,0.3); }
+  .toggle-btn { display: none; }
+}

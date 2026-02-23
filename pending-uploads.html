@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pending Uploads - StudyPanel</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="sidebar.css">
+
+    <style>
+        /* Pending Uploads Container */
+        .pending-uploads-container {
+            flex: 1;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .page-header h2 {
+            margin: 0;
+            color: #2d3748;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-summary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-summary-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 24px;
+        }
+
+        .stat-summary-icon.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .stat-summary-icon.approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .stat-summary-icon.rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .stat-summary-info h4 {
+            margin: 0;
+            font-size: 14px;
+            color: #718096;
+            font-weight: 500;
+        }
+
+        .stat-summary-info p {
+            margin: 5px 0 0 0;
+            font-size: 24px;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        /* Uploads Table */
+        .uploads-table-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h3 {
+            margin: 0;
+            color: #2d3748;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px 10px 40px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+        }
+
+        .uploads-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .uploads-table thead {
+            background: #f7fafc;
+        }
+
+        .uploads-table thead th {
+            padding: 15px 20px;
+            text-align: left;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .uploads-table tbody tr {
+            border-bottom: 1px solid #e2e8f0;
+            transition: background-color 0.2s;
+        }
+
+        .uploads-table tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        .uploads-table tbody td {
+            padding: 18px 20px;
+            font-size: 14px;
+            color: #2d3748;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.approved {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-badge.rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .action-btn.approve {
+            background: #28a745;
+            color: white;
+        }
+
+        .action-btn.approve:hover {
+            background: #218838;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+
+        .action-btn.reject {
+            background: #dc3545;
+            color: white;
+        }
+
+        .action-btn.reject:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+        }
+
+        .action-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* File Icon */
+        .file-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .file-icon i {
+            font-size: 20px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .empty-state i {
+            font-size: 80px;
+            color: #cbd5e0;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            margin: 0 0 10px 0;
+            color: #4a5568;
+            font-size: 24px;
+        }
+
+        .empty-state p {
+            margin: 0;
+            color: #718096;
+            font-size: 16px;
+        }
+
+        /* Loading State */
+        .loading-container {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .loading-container i {
+            font-size: 40px;
+            color: #667eea;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive Table */
+        @media (max-width: 768px) {
+            .pending-uploads-container {
+                padding: 15px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .stats-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .uploads-table-container {
+                overflow-x: auto;
+            }
+
+            .uploads-table thead th,
+            .uploads-table tbody td {
+                padding: 12px 10px;
+                font-size: 12px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background: #28a745;
+        }
+
+        .toast.error {
+            background: #dc3545;
+        }
+
+        .toast.info {
+            background: #17a2b8;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Dashboard Layout -->
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <div class="top-bar-left">
+                    <i class="fa-solid fa-bars hamburger" id="hamburger"></i>
+                    <h2>Pending Uploads</h2>
+                </div>
+                <div class="profile">
+                    <img src="logo.png" alt="Admin">
+                    <span id="userEmail">Admin User</span>
+                    <button onclick="logout()"
+                        style="margin-left: 15px; padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </div>
+            </div>
+
+            <!-- Pending Uploads Content -->
+            <div class="pending-uploads-container">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <h2>Pending Uploads Management</h2>
+                    <div class="search-box">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search uploads...">
+                    </div>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="stats-summary">
+                    <div class="stat-summary-card">
+                        <div class="stat-summary-icon pending">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div class="stat-summary-info">
+                            <h4>Pending</h4>
+                            <p id="pendingCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-summary-card">
+                        <div class="stat-summary-icon approved">
+                            <i class="fa-solid fa-check-circle"></i>
+                        </div>
+                        <div class="stat-summary-info">
+                            <h4>Approved</h4>
+                            <p id="approvedCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-summary-card">
+                        <div class="stat-summary-icon rejected">
+                            <i class="fa-solid fa-times-circle"></i>
+                        </div>
+                        <div class="stat-summary-info">
+                            <h4>Rejected</h4>
+                            <p id="rejectedCount">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Uploads Table -->
+                <div class="uploads-table-container">
+                    <div class="table-header">
+                        <h3>All Uploads</h3>
+                    </div>
+                    <div id="tableContent">
+                        <!-- Table will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script src="global.js"></script>
+    <script>
+        const API_BASE_URL = 'http://localhost:5000';
+        let allUploads = [];
+        let filteredUploads = [];
+
+        // Check if user is authenticated
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            window.location.href = 'index.html';
+        } else {
+            verifyTokenAndLoadPage();
+        }
+
+        // Verify token and load page
+        async function verifyTokenAndLoadPage() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/users`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    // Token is valid - load page
+                    loadUserData();
+                    loadUploads();
+                } else {
+                    // Token invalid - redirect to login
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('userEmail');
+                    window.location.href = 'index.html';
+                }
+            } catch (error) {
+                console.error('Token verification error:', error);
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userEmail');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Load user data
+        function loadUserData() {
+            const userEmail = localStorage.getItem('userEmail');
+            if (userEmail) {
+                document.getElementById('userEmail').textContent = userEmail;
+            }
+        }
+
+        // Load all uploads
+        async function loadUploads() {
+            showLoadingState();
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/user-uploads`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    allUploads = await response.json();
+                    filteredUploads = [...allUploads];
+                    updateStats();
+                    renderTable();
+                } else if (response.status === 401) {
+                    // Token expired - logout
+                    logout();
+                } else {
+                    showToast('Failed to load uploads', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading uploads:', error);
+                showToast('Connection error', 'error');
+            }
+        }
+
+        // Update statistics
+        function updateStats() {
+            const pending = allUploads.filter(upload => upload.status === 'pending').length;
+            const approved = allUploads.filter(upload => upload.status === 'approved').length;
+            const rejected = allUploads.filter(upload => upload.status === 'rejected').length;
+
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('approvedCount').textContent = approved;
+            document.getElementById('rejectedCount').textContent = rejected;
+        }
+
+        // Render table
+        function renderTable() {
+            const tableContent = document.getElementById('tableContent');
+
+            if (filteredUploads.length === 0) {
+                tableContent.innerHTML = `
+          <div class="empty-state">
+            <i class="fa-solid fa-inbox"></i>
+            <h3>No Uploads Found</h3>
+            <p>There are no uploads to display.</p>
+          </div>
+        `;
+                return;
+            }
+
+            const tableHtml = `
+        <table class="uploads-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Type</th>
+              <th>Semester</th>
+              <th>Subject</th>
+              <th>Uploader</th>
+              <th>Uploaded At</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredUploads.map(upload => `
+              <tr>
+                <td>
+                  <div class="file-icon">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span>${upload.title}</span>
+                  </div>
+                </td>
+                <td>${upload.type}</td>
+                <td>${upload.semester}</td>
+                <td>${upload.subject}</td>
+                <td>${upload.uploaderEmail}</td>
+                <td>${new Date(upload.uploadedAt).toLocaleString()}</td>
+                <td><span class="status-badge ${upload.status}">${upload.status}</span></td>
+                <td>
+                  <div class="action-buttons">
+                    ${upload.status === 'pending' ? `
+                      <button class="action-btn approve" onclick="approveUpload('${upload._id}')">
+                        <i class="fa-solid fa-check"></i> Approve
+                      </button>
+                      <button class="action-btn reject" onclick="rejectUpload('${upload._id}')">
+                        <i class="fa-solid fa-times"></i> Reject
+                      </button>
+                    ` : upload.status === 'approved' ? `
+                      <button class="action-btn reject" onclick="rejectUpload('${upload._id}')">
+                        <i class="fa-solid fa-times"></i> Reject
+                      </button>
+                      <button class="action-btn approve" style="background: #ffc107; color: #000;" onclick="setPending('${upload._id}')">
+                        <i class="fa-solid fa-clock"></i> Pending
+                      </button>
+                    ` : `
+                      <button class="action-btn approve" onclick="approveUpload('${upload._id}')">
+                        <i class="fa-solid fa-check"></i> Approve
+                      </button>
+                      <button class="action-btn approve" style="background: #ffc107; color: #000;" onclick="setPending('${upload._id}')">
+                        <i class="fa-solid fa-clock"></i> Pending
+                      </button>
+                    `}
+                  </div>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+
+            tableContent.innerHTML = tableHtml;
+        }
+
+        // Approve upload
+        async function approveUpload(uploadId) {
+            const button = event.target.closest('.action-btn');
+            button.disabled = true;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Approving...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/user-uploads/${uploadId}/approve`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    updateUploadInList(data.upload);
+                    updateStats();
+                    renderTable();
+                    showToast('Upload approved successfully', 'success');
+                } else if (response.status === 401) {
+                    logout();
+                } else {
+                    showToast('Failed to approve upload', 'error');
+                }
+            } catch (error) {
+                console.error('Error approving upload:', error);
+                showToast('Connection error', 'error');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-check"></i> Approve';
+            }
+        }
+
+        // Reject upload
+        async function rejectUpload(uploadId) {
+            const button = event.target.closest('.action-btn');
+            button.disabled = true;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Rejecting...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/user-uploads/${uploadId}/reject`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    updateUploadInList(data.upload);
+                    updateStats();
+                    renderTable();
+                    showToast('Upload rejected successfully', 'success');
+                } else if (response.status === 401) {
+                    logout();
+                } else {
+                    showToast('Failed to reject upload', 'error');
+                }
+            } catch (error) {
+                console.error('Error rejecting upload:', error);
+                showToast('Connection error', 'error');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-times"></i> Reject';
+            }
+        }
+
+        // Update upload in list
+        function updateUploadInList(updatedUpload) {
+            const index = allUploads.findIndex(upload => upload._id === updatedUpload._id);
+            if (index !== -1) {
+                allUploads[index] = updatedUpload;
+                filteredUploads = [...allUploads];
+                applySearch();
+            }
+        }
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function (e) {
+            applySearch();
+        });
+
+        // Apply search filter
+        function applySearch() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            if (searchTerm === '') {
+                filteredUploads = [...allUploads];
+            } else {
+                filteredUploads = allUploads.filter(upload =>
+                    upload.title.toLowerCase().includes(searchTerm) ||
+                    upload.type.toLowerCase().includes(searchTerm) ||
+                    upload.semester.toLowerCase().includes(searchTerm) ||
+                    upload.subject.toLowerCase().includes(searchTerm) ||
+                    upload.uploaderEmail.toLowerCase().includes(searchTerm) ||
+                    upload.status.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            renderTable();
+        }
+
+        // Show loading state
+        function showLoadingState() {
+            const tableContent = document.getElementById('tableContent');
+            tableContent.innerHTML = `
+        <div class="loading-container">
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          <p style="margin-top: 10px; color: #718096;">Loading uploads...</p>
+        </div>
+      `;
+        }
+
+        // Show toast notification
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Logout function
+        async function logout() {
+            try {
+                await fetch(`${API_BASE_URL}/api/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+            } catch (error) {
+                console.error('Logout error:', error);
+            } finally {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('userEmail');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Set to pending
+        async function setPending(uploadId) {
+            const button = event.target.closest('.action-btn');
+            button.disabled = true;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Setting...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/user-uploads/${uploadId}/pending`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    updateUploadInList(data.upload);
+                    updateStats();
+                    renderTable();
+                    showToast('Status set to pending', 'success');
+                } else if (response.status === 401) {
+                    logout();
+                } else {
+                    showToast('Failed to set to pending', 'error');
+                }
+            } catch (error) {
+                console.error('Error setting to pending:', error);
+                showToast('Connection error', 'error');
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<i class="fa-solid fa-clock"></i> Pending';
+            }
+        }
+
+        // Make functions globally available
+        window.approveUpload = approveUpload;
+        window.rejectUpload = rejectUpload;
+        window.setPending = setPending;
+        window.logout = logout;
+    </script>
+</body>
+
+</html>

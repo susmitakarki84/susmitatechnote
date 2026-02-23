@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard</title>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="sidebar.css">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* Login Container Styles */
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+    }
+
+    .login-box {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-box h2 {
+      text-align: center;
+      margin-bottom: 10px;
+      color: #333;
+      font-size: 28px;
+    }
+
+    .login-box p {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .login-btn:active {
+      transform: translateY(0);
+    }
+
+    .error-message {
+      background-color: #fee;
+      color: #c33;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      font-size: 14px;
+      text-align: center;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .login-icon {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .login-icon i {
+      font-size: 50px;
+      color: #667eea;
+    }
+
+    /* Hide dashboard initially */
+    .layout {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Login Form -->
+  <div class="login-container" id="loginContainer">
+    <div class="login-box">
+      <div class="login-icon">
+        <i class="fa-solid fa-user-shield"></i>
+      </div>
+      <h2>Admin Login</h2>
+      <p>Please enter your credentials to access the dashboard</p>
+      <h5>defualt gmail and pass</h5>
+      <p>admin@example.com : admin1234@ADMIN</p>
+
+      <div class="error-message" id="errorMessage">
+        Invalid email or password. Please try again.
+      </div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">
+            <i class="fa-solid fa-envelope"></i> Email Address
+          </label>
+          <input type="email" id="email" name="email" placeholder="Enter your email" required />
+        </div>
+
+        <div class="form-group">
+          <label for="password">
+            <i class="fa-solid fa-lock"></i> Password
+          </label>
+          <input type="password" id="password" name="password" placeholder="Enter your password" required />
+        </div>
+
+        <button type="submit" class="login-btn">
+          <i class="fa-solid fa-right-to-bracket"></i> Login
+        </button>
+      </form>
+
+
+    </div>
+  </div>
+
+  <!-- Dashboard (Hidden until login) -->
+  <div class="layout" id="dashboardLayout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar"></aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <div class="top-bar">
+        <div class="top-bar-left">
+          <i class="fa-solid fa-bars hamburger" id="hamburger"></i>
+          <h2>Dashboard</h2>
+        </div>
+        <div class="profile">
+          <img src="logo.png" alt="Admin">
+          <span>Admin User</span>
+          <button onclick="logout()"
+            style="margin-left: 15px; padding: 8px 15px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+          </button>
+        </div>
+      </div>
+
+
+      <!-- Card -->
+      <div class="card">
+        <h3>Welcome Back</h3>
+        <p>This dashboard is fully connected to MongoDB.</p>
+      </div>
+    </main>
+  </div>
+
+  <script src="global.js"></script>
+  <script>
+    // JWT Authentication System
+    const API_BASE_URL = 'http://localhost:5000';
+
+    const loginForm = document.getElementById('loginForm');
+    const loginContainer = document.getElementById('loginContainer');
+    const dashboardLayout = document.getElementById('dashboardLayout');
+    const errorMessage = document.getElementById('errorMessage');
+
+    // Check if user is already logged in with valid token
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      verifyTokenAndShowDashboard();
+    }
+
+    // Handle login form submission
+    loginForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      // Disable button during login
+      const loginBtn = loginForm.querySelector('.login-btn');
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Logging in...';
+
+      try {
+        // Call login API
+        const response = await fetch(`${API_BASE_URL}/api/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          // Successful login - store token
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('userEmail', data.user.email);
+
+          errorMessage.classList.remove('show');
+          showDashboard();
+        } else {
+          // Failed login
+          if (response.status === 429 && data.lockoutTime) {
+            // Show lockout message with countdown
+            errorMessage.textContent = `Too many login attempts. Please try again in ${data.lockoutTime} seconds.`;
+            errorMessage.classList.add('show');
+            startCountdown(data.lockoutTime);
+          } else {
+            errorMessage.textContent = data.message || 'Invalid email or password';
+            errorMessage.classList.add('show');
+
+            // Shake animation for error
+            loginForm.style.animation = 'shake 0.5s';
+            setTimeout(() => {
+              loginForm.style.animation = '';
+            }, 500);
+          }
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        errorMessage.textContent = 'Connection error. Please check if the server is running.';
+        errorMessage.classList.add('show');
+      } finally {
+        // Re-enable button unless there's an active countdown
+        if (!window.loginCountdownInterval) {
+          loginBtn.disabled = false;
+          loginBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Login';
+        }
+      }
+    });
+
+    // Countdown timer function
+    function startCountdown(seconds) {
+      const loginBtn = loginForm.querySelector('.login-btn');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+
+      // Disable all form elements
+      loginBtn.disabled = true;
+      emailInput.disabled = true;
+      passwordInput.disabled = true;
+
+      let remainingSeconds = seconds;
+
+      // Update button text with countdown
+      loginBtn.innerHTML = `<i class="fa-solid fa-clock"></i> Try again in ${remainingSeconds}s`;
+
+      // Clear existing interval if any
+      if (window.loginCountdownInterval) {
+        clearInterval(window.loginCountdownInterval);
+      }
+
+      // Start countdown interval
+      window.loginCountdownInterval = setInterval(() => {
+        remainingSeconds--;
+
+        if (remainingSeconds > 0) {
+          loginBtn.innerHTML = `<i class="fa-solid fa-clock"></i> Try again in ${remainingSeconds}s`;
+          errorMessage.textContent = `Too many login attempts. Please try again in ${remainingSeconds} seconds.`;
+        } else {
+          // Countdown complete - enable form elements
+          clearInterval(window.loginCountdownInterval);
+          window.loginCountdownInterval = null;
+
+          loginBtn.disabled = false;
+          loginBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Login';
+          emailInput.disabled = false;
+          passwordInput.disabled = false;
+          errorMessage.classList.remove('show');
+        }
+      }, 1000);
+    }
+
+    // Verify token and show dashboard
+    async function verifyTokenAndShowDashboard() {
+      const token = localStorage.getItem('authToken');
+
+      try {
+        // Try to fetch user data with token
+        const response = await fetch(`${API_BASE_URL}/api/users`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          showDashboard();
+        } else {
+          // Token invalid or expired
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('userEmail');
+        }
+      } catch (error) {
+        console.error('Token verification error:', error);
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userEmail');
+      }
+    }
+
+    // Show dashboard
+    function showDashboard() {
+      loginContainer.style.display = 'none';
+      dashboardLayout.style.display = 'flex';
+
+      // Update user email in profile
+      const userEmail = localStorage.getItem('userEmail');
+      if (userEmail) {
+        const profileSpan = document.querySelector('.profile span');
+        if (profileSpan) {
+          profileSpan.textContent = userEmail;
+        }
+      }
+
+      // Load user count after dashboard is shown
+      loadUserCount();
+    }
+
+    // Load user count with authentication
+    async function loadUserCount() {
+      const token = localStorage.getItem('authToken');
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/users`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('totalUsers').innerText = data.length;
+        } else if (response.status === 401) {
+          // Token expired or invalid - logout
+          logout();
+        }
+      } catch (error) {
+        console.error('Error loading user count:', error);
+      }
+    }
+
+    // Logout function
+    async function logout() {
+      const token = localStorage.getItem('authToken');
+
+      try {
+        await fetch(`${API_BASE_URL}/api/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+      } catch (error) {
+        console.error('Logout error:', error);
+      } finally {
+        // Clear local storage
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userEmail');
+
+        // Redirect to login
+        window.location.reload();
+      }
+    }
+
+    // Make logout function available globally
+    window.logout = logout;
+
+    // Add shake animation
+    const style = document.createElement('style');
+    style.textContent = `
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+      20%, 40%, 60%, 80% { transform: translateX(10px); }
+    }
+  `;
+    document.head.appendChild(style);
+  </script>
+
+</body>
+
+</html>
