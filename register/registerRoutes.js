@@ -17,6 +17,13 @@ async function registerUser(req, res) {
     try {
         const { email, password } = req.body;
 
+// ✅ Password length validation
+if (password.length !== 8 && password.length !== 16) {
+    return res.status(400).json({
+        success: false,
+        message: 'Password must be exactly 8 or 16 characters long'
+    });
+}
         // Validate input
         if (!email || !password) {
             return res.status(400).json({

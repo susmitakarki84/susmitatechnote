@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config(); // ✅ FIXED (was conits)
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -25,6 +25,11 @@ const supabase = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_SECRET_KEY
 );
+
+const isValidPasswordLength = (password) => {
+    return password.length === 8 || password.length === 16;
+};
+
 
 // ================= CREATE UPLOADS FOLDER (Optional - for temporary storage) =================
 const uploadDir = './uploads';
@@ -348,6 +353,14 @@ app.post('/api/users', verifyToken, async (req, res) => {
 
         const { email, password, role = 'user' } = req.body;
 
+// ✅ Password length validation
+if (!isValidPasswordLength(password)) {
+    return res.status(400).json({
+        success: false,
+        message: 'Password must be exactly 8 or 16 characters long'
+    });
+}
+
         // Validate input
         if (!email || !password) {
             return res.status(400).json({
@@ -425,8 +438,15 @@ app.put('/api/users/:id/password', verifyToken, async (req, res) => {
     try {
         // Only allow superadmin, admin, or the user themselves to change password
         const userId = req.params.id;
-        const { newPassword } = req.body;
+      const { newPassword } = req.body;
 
+// ✅ Password length validation
+if (!isValidPasswordLength(newPassword)) {
+    return res.status(400).json({
+        success: false,
+        message: 'Password must be exactly 8 or 16 characters long'
+    });
+}
         const user = await AuthUser.findById(userId);
         if (!user) {
             return res.status(404).json({
