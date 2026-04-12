@@ -115,7 +115,7 @@ const resetLoginAttempts = (email) => {
 // ================= MONGODB CONNECTION =================
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('✅ Connected to MongoDB'))
-    .catch(err => console.error('❌ MongoDB Error:', err.message));
+    .catch(err => console.error('❌ Server Error:', err.message));
 
 // ================= SCHEMAS =================
 
